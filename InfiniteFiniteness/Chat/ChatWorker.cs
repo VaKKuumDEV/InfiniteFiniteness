@@ -123,7 +123,7 @@ namespace InfiniteFiniteness.Chat
                     if (taskIndex == -1) return;
 
                     Tasks[taskIndex].SendMessage = message;
-                    Tasks[taskIndex].Result = response.choices?.Where(item => item.message != null).Select(item => item.message.content).Select(item => item.Replace("Ситуация: ", "")).ToList();
+                    Tasks[taskIndex].Result = response.choices?.Where(item => item.message != null).Where(item => item.finish_reason != "blacklist").Select(item => item.message.content).Select(item => item.Replace("Ситуация: ", "")).ToList();
                     Tasks[taskIndex].Completed = true;
                 }
             }
