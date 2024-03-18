@@ -164,27 +164,20 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
                     ChatTask chatTask = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ACTION, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last()]));
                     if (chatTask.Result is not { } generatedPrompts) return;
 
-                    string actionType = "Между вами и другим персонажем произошел диалог";
-                    if (chatTask.ResultType == ChatTask.ResultTypes.ACTION) actionType = "Произошло следующее действие";
-
-                    Message botMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: actionType + ":\n" + generatedPrompts.First(), cancellationToken: cancellationToken);
+                    Message botMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: "Произошло следующее действие:\n" + generatedPrompts.First(), cancellationToken: cancellationToken);
 
                     List<KeyValuePair<string, string>> context = [new("assistant", generatedPrompts.First())];
 
-                    string actionSubType = chatTask.ResultType == ChatTask.ResultTypes.DIALOG ? "dialog" : "action";
-                    ChatTask chatTask2 = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ANSWERS, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last(), generatedPrompts.First(), actionSubType]) { LastContext = context });
+                    ChatTask chatTask2 = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ANSWERS, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last(), generatedPrompts.First()]) { LastContext = context });
                     if (chatTask2.Result is not { } generatedPrompts2) return;
-
-                    string answerType = "Ответ";
-                    if (chatTask.ResultType == ChatTask.ResultTypes.ACTION) answerType = "Действие";
 
                     List<UserMessage> subMessages = [];
                     List<List<InlineKeyboardButton>> buttons = [];
                     for (int i = 0; i < generatedPrompts2.Count; i++)
                     {
-                        Message situationBotMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: answerType + " " + (i + 1) + ":\n" + generatedPrompts2[i], cancellationToken: cancellationToken);
+                        Message situationBotMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: "Действие " + (i + 1) + ":\n" + generatedPrompts2[i], cancellationToken: cancellationToken);
                         subMessages.Add(new(situationBotMessage.MessageId, generatedPrompts2[i], UserMessage.SenderTypes.BOT));
-                        buttons.Add([InlineKeyboardButton.WithCallbackData(answerType + " " + (i + 1), actionSubType + "-" + i)]);
+                        buttons.Add([InlineKeyboardButton.WithCallbackData("Действие " + (i + 1), "action-" + i)]);
                     }
 
                     var ikm = new InlineKeyboardMarkup(buttons);
@@ -256,26 +249,19 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
                     ChatTask chatTask = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ACTION, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last()]) { LastContext = context });
                     if (chatTask.Result is not { } generatedPrompts) return;
 
-                    string actionType = "Между вами и другим персонажем произошел диалог";
-                    if (chatTask.ResultType == ChatTask.ResultTypes.ACTION) actionType = "Произошло следующее действие";
-
-                    Message botMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: actionType + ":\n" + generatedPrompts.First(), cancellationToken: cancellationToken);
+                    Message botMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: "Произошло следующее действие:\n" + generatedPrompts.First(), cancellationToken: cancellationToken);
 
                     context.Add(new("assistant", generatedPrompts.First()));
-                    string actionSubType = chatTask.ResultType == ChatTask.ResultTypes.DIALOG ? "dialog" : "action";
-                    ChatTask chatTask2 = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ANSWERS, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last(), generatedPrompts.First(), actionSubType]) { LastContext = context });
+                    ChatTask chatTask2 = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ANSWERS, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last(), generatedPrompts.First()]) { LastContext = context });
                     if (chatTask2.Result is not { } generatedPrompts2) return;
-
-                    string answerType = "Ответ";
-                    if (chatTask.ResultType == ChatTask.ResultTypes.ACTION) answerType = "Действие";
 
                     List<UserMessage> subMessages = [];
                     List<List<InlineKeyboardButton>> buttons = [];
                     for (int i = 0; i < generatedPrompts2.Count; i++)
                     {
-                        Message situationBotMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: answerType + " " + (i + 1) + ":\n" + generatedPrompts2[i], cancellationToken: cancellationToken);
+                        Message situationBotMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: "Действие " + (i + 1) + ":\n" + generatedPrompts2[i], cancellationToken: cancellationToken);
                         subMessages.Add(new(situationBotMessage.MessageId, generatedPrompts2[i], UserMessage.SenderTypes.BOT));
-                        buttons.Add([InlineKeyboardButton.WithCallbackData(answerType + " " + (i + 1), actionSubType + "-" + i)]);
+                        buttons.Add([InlineKeyboardButton.WithCallbackData("Действие " + (i + 1), "action-" + i)]);
                     }
 
                     var ikm = new InlineKeyboardMarkup(buttons);
