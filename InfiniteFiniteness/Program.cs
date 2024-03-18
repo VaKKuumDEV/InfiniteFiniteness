@@ -213,6 +213,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
                     {
                         List<KeyValuePair<string, string>> scenes = [];
                         foreach (string scene in dialog.Scenes) scenes.Add(new("assistant", scene));
+                        scenes.AddRange(dialog.Messages.ConvertAll(item => new KeyValuePair<string, string>(item.SenderType == UserMessage.SenderTypes.BOT ? "assistant" : "user", item.Text)));
 
                         ChatTask changeSceneTask = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE, [dialog.Prompt, dialog.Situation]) { LastContext = scenes });
                         if (changeSceneTask.Result is not { } generatedScenePrompts) return;
@@ -220,6 +221,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
                         Message newSceneMessage = await botClient.SendTextMessageAsync(chatId: chatId.Value, text: "Внезапно ситуация изменилась:\n" + generatedScenePrompts.First(), cancellationToken: cancellationToken);
 
                         dialog.Scenes.Add(generatedScenePrompts.First());
+                        dialog.Messages.Clear();
                         dialog.UserActionsCount = 0;
                         dialog.Save();
                     }
@@ -249,7 +251,7 @@ async Task HandleUpdateAsync(ITelegramBotClient botClient, Update update, Cancel
                     }
 
                     List<KeyValuePair<string, string>> context = [];
-                    foreach (UserMessage msg in dialog.Messages.GetRange(Math.Max(0, dialog.Messages.Count - 10), Math.Min(10, dialog.Messages.Count))) context.Add(new(msg.SenderType == UserMessage.SenderTypes.USER ? "user" : "assistant", msg.Text));
+                    foreach (UserMessage msg in dialog.Messages) context.Add(new(msg.SenderType == UserMessage.SenderTypes.USER ? "user" : "assistant", msg.Text));
 
                     ChatTask chatTask = await chatWorker.AddTask(new(ChatTask.Types.GENERATE_SCENE_ACTION, [dialog.Prompt, dialog.Situation, dialog.Scenes.Last()]) { LastContext = context });
                     if (chatTask.Result is not { } generatedPrompts) return;

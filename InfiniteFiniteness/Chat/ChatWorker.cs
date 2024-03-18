@@ -62,8 +62,13 @@ namespace InfiniteFiniteness.Chat
                 string scene = task.Params[1];
                 count = 4;
 
+                string sitKey = "положительном";
+                int rand = new Random().Next(1, 100);
+                if (rand <= 25) sitKey = "отрицательном";
+                else if (rand <= 50) sitKey = "нейтральном";
+
                 systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + scene + "\"";
-                message = "Придумай возможную ситуацию для данной завязки. Не повторяй с предыдущими сообщениями. Продолжай сюжет в рамках завязки. Длина - не более двух предложений";
+                message = "Придумай возможную ситуацию в " + sitKey + " ключе для данной завязки на основе моих ответов и действий. Продолжай сюжет в рамках завязки. Длина - не более двух предложений";
             }
             else if (task.Type == ChatTask.Types.GENERATE_SCENE_ACTION)
             {
@@ -72,16 +77,22 @@ namespace InfiniteFiniteness.Chat
                 string situation = task.Params[1];
                 string scene = task.Params[2];
 
-                string actionType = "реплику от лица любого второстепенного персонажа";
+                string sitKey = "положительном";
+                int rand = new Random().Next(1, 100);
+                if (rand <= 25) sitKey = "отрицательном";
+                else if (rand <= 50) sitKey = "нейтральном";
+
+                string actionType = "реплику диалога от лица второстепенного персонажа";
                 task.ResultType = ChatTask.ResultTypes.DIALOG;
                 if (new Random().Next(1, 100) <= 50)
                 {
-                    actionType = "событие со стороны предметов окружения или от других второстепенных персонажей";
+                    actionType = "событие, которое может произойти в рамках текущей ситуации,";
                     task.ResultType = ChatTask.ResultTypes.ACTION;
                 }
+                actionType += " в " + sitKey + " ключе для меня";
 
-                systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\". Отвечай от имени игровых персонажей";
-                message = "Придумай " + actionType + ". Длина - не более двух предложений. Не повторяй предыдущие ответы. Старайся учитывать предыдущий контекст и продолжать развитие сюжета";
+                systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\"";
+                message = "Придумай " + actionType + ". Длина - не более двух предложений. Не повторяй предыдущие ответы. Продолжи развитие сюжета с учетом моего выбора";
             }
             else if (task.Type == ChatTask.Types.GENERATE_SCENE_ANSWERS)
             {
@@ -92,11 +103,11 @@ namespace InfiniteFiniteness.Chat
                 string type = task.Params[3];
                 count = 4;
 
-                string actionType = "мой ответ от первого лица на реплику от второстепенного персонажа";
-                if (type == "action") actionType = "мое действие в ответ на возникнувшую ситуацию";
+                string actionType = "мой ответ на реплику от второстепенного персонажа";
+                if (type == "action") actionType = "мою реакцию в ответ на возникнувшую ситуацию";
 
                 systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\"";
-                message = "Придумай " + actionType + " со случайным окрасом контекста. Длина - не более двух предложений";
+                message = "Придумай " + actionType + " от моего лица. Длина - не более двух предложений";
             }
 
             if (message != null && systemMessage != null)
@@ -112,7 +123,7 @@ namespace InfiniteFiniteness.Chat
                     if (taskIndex == -1) return;
 
                     Tasks[taskIndex].SendMessage = message;
-                    Tasks[taskIndex].Result = response.choices?.Where(item => item.message != null).Select(item => item.message.content).ToList();
+                    Tasks[taskIndex].Result = response.choices?.Where(item => item.message != null).Select(item => item.message.content).Select(item => item.Replace("Ситуация: ", "")).ToList();
                     Tasks[taskIndex].Completed = true;
                 }
             }
