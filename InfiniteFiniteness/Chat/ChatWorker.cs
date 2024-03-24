@@ -53,7 +53,7 @@ namespace InfiniteFiniteness.Chat
                 if (task.Params.Count == 0) throw new ArgumentException("Prompt not sent");
                 string prompt = task.Params[0];
 
-                systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Придумай завязку сюжета. Длина до 5 предложений без каких-либо предложений и комментариев";
+                systemMessage = "Мы с тобой играем в новеллу. Я играю от лица главного героя. Мы находимся во вселенной \"" + prompt + "\". Придумай завязку сюжета. Длина до 5 предложений без каких-либо предложений и комментариев";
             }
             else if (task.Type == ChatTask.Types.GENERATE_SCENE)
             {
@@ -67,7 +67,7 @@ namespace InfiniteFiniteness.Chat
                 if (rand <= 25) sitKey = "отрицательном";
                 else if (rand <= 50) sitKey = "нейтральном";
 
-                systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + scene + "\"";
+                systemMessage = "Мы с тобой играем в новеллу. Я играю от лица главного героя. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + scene + "\"";
                 message = "Создай сцену в " + sitKey + " ключе для данной завязки на основе моих ответов и действий. Продолжай сюжет в рамках завязки. Длина до 2 предложений без каких-либо предложений и комментариев";
             }
             else if (task.Type == ChatTask.Types.GENERATE_SCENE_ACTION)
@@ -77,7 +77,7 @@ namespace InfiniteFiniteness.Chat
                 string situation = task.Params[1];
                 string scene = task.Params[2];
 
-                systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\". Придумай реплику второстепенного персонажа или поворотное для сюжета действие. Длина до 2 предложений. Если это реплика в диалоге, то обозначь как прямую речь. Продолжи развитие сюжета с учетом моего выбора без каких-либо пояснений и комментариев";
+                systemMessage = "Мы с тобой играем в новеллу. Я играю от лица главного героя. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\". Придумай реплику второстепенного персонажа или поворотное для сюжета действие. Длина до 2 предложений. Продолжи развитие сюжета без каких-либо пояснений и комментариев к своему сообщению";
             }
             else if (task.Type == ChatTask.Types.GENERATE_SCENE_ANSWERS)
             {
@@ -87,8 +87,8 @@ namespace InfiniteFiniteness.Chat
                 string scene = task.Params[2];
                 count = 4;
 
-                systemMessage = "Мы с тобой играем в новеллу. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\"";
-                message = "Придумай ответ или действие от моего лица. Длина до 2 двух предложений без каких-либо пояснений и комментариев. Если это реплика в диалоге, то обозначь как прямую речь";
+                systemMessage = "Мы с тобой играем в новеллу. Я играю от лица главного героя. Мы находимся во вселенной \"" + prompt + "\". Завязка сюжета: \"" + situation + "\". Происходящее событие: \"" + scene + "\"";
+                message = "Придумай ответ или действие от первого лица. Длина до 2 предложений без каких-либо пояснений и комментариев";
             }
 
             if (systemMessage != null)
@@ -104,7 +104,7 @@ namespace InfiniteFiniteness.Chat
                     if (taskIndex == -1) return;
 
                     Tasks[taskIndex].SendMessage = message;
-                    Tasks[taskIndex].Result = response.choices?.Where(item => item.message != null).Where(item => item.finish_reason != "blacklist").Select(item => item.message.content).Select(item => item.Replace("Ситуация: ", "").Replace("Событие: ", "")).ToList();
+                    Tasks[taskIndex].Result = response.choices?.Where(item => item.finish_reason != "blacklist").Select(item => item.message?.content ?? "").Select(item => item.Replace("Ситуация: ", "").Replace("Событие: ", "")).Where(item => item.Trim().Length > 0).Distinct().ToList() ?? [];
                     Tasks[taskIndex].Completed = true;
                 }
             }
